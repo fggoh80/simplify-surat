@@ -1,0 +1,20 @@
+{
+ "name": "S.I.M.P.L.I.F.Y-Surat",
+ "short_name": "Surat",
+ "start_url": "./",
+ "display": "standalone",
+ "background_color": "#F8FAFC",
+ "theme_color": "#1E3A8A",
+ "icons": [
+  {
+   "src": "img/ikon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "img/ikon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  }
+ ]
+}

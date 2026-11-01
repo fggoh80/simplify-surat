@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#1E3A8A">
+<title>S.I.M.P.L.I.F.Y-Surat</title>
+<link rel="icon" href="img/logo_simplify.png">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root {
+    --navy: #1E3A8A; --biru: #2563EB;
+    --bg: #F8FAFC; --surface: #ffffff; --panel: #F1F5F9; --line: #E2E8F0; --text: #0F172A; --muted: #64748B;
+    --hover: #EEF2FF; --accent: #1E3A8A; --on-accent: #ffffff; --ok: #15803D; --warn: #B45309; --bad: #B91C1C;
+    --field: #ffffff;
+    --gradien: linear-gradient(135deg, #1E3A8A, #2563EB);
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.08);
+    --shadow: 0 4px 6px -1px rgba(15,23,42,.08), 0 10px 24px -6px rgba(15,23,42,.12);
+    --cahaya: 0 6px 18px rgba(37,99,235,.38);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 Inter, "Segoe UI", system-ui, Arial, sans-serif; }
+
+  .rangka { display: grid; grid-template-rows: auto minmax(0, 1fr); height: 100vh; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 20px; background: var(--navy); background-image: linear-gradient(100deg, #172F73, #1E3A8A 55%, #2563EB); color: #fff; box-shadow: var(--shadow); position: relative; z-index: 2; }
+  .jenama { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .plat { flex: none; display: flex; align-items: center; justify-content: center; height: 48px; padding: 3px 6px; background: #fff; border-radius: 10px; box-shadow: var(--shadow-sm); }
+  .plat img { display: block; height: 42px; width: auto; }
+  .nama { min-width: 0; margin-left: 4px; }
+  .nama strong { display: block; font-size: 17px; font-weight: 700; letter-spacing: .01em; line-height: 1.25; }
+  .nama span { display: block; font-size: 12px; color: #DBEAFE; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .info { flex: none; text-align: right; font-size: 12px; color: #DBEAFE; line-height: 1.4; }
+  .info strong { display: block; font-size: 13px; font-weight: 600; color: #fff; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  h1, h2, p { margin: 0; }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 2px solid #4c8bf5; outline-offset: 1px; }
+
+  .app { display: grid; grid-template-columns: 272px 1fr; min-height: 0; }
+  aside { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 12px; min-height: 0; }
+  .baru { width: 100%; text-align: center; padding: 10px; border: 0; border-radius: 10px; background: var(--gradien); color: #fff; cursor: pointer; font-weight: 600; box-shadow: var(--shadow-sm); transition: box-shadow .15s, transform .15s; }
+  .baru:hover, .utama:not(:disabled):hover { box-shadow: var(--cahaya); transform: translateY(-1px); }
+  .tetapan:hover, .nav:hover { background: var(--hover); }
+  .navigasi { flex: 1; overflow-y: auto; min-height: 0; margin-top: 8px; }
+  .nav { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; width: 100%; text-align: left; border: 0; background: transparent; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+  .nav .teks { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nav .bil { flex: none; font-size: 12px; color: var(--muted); }
+  .nav.aktif { background: var(--navy); color: #fff; font-weight: 600; box-shadow: inset 3px 0 0 var(--biru); }
+  .nav.aktif .bil { color: #DBEAFE; }
+  .tahun { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; padding: 0 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .tahun select { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid #CBD5E1; border-radius: 8px; background: var(--surface); color: inherit; font: inherit; }
+  .kumpulan { margin-top: 8px; }
+  .kumpulan > summary { cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted); padding: 6px 10px; }
+  .sub { font-size: 11px; color: var(--muted); padding: 6px 10px 2px; }
+  .pokok { margin-left: 12px; }
+  .nod { display: grid; grid-template-columns: 18px 1fr; align-items: center; }
+  .nod .nav { min-width: 0; }
+  .togol { width: 18px; height: 22px; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0; font-size: 10px; }
+  .tetapan { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; margin-top: 8px; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; }
+  .titik { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); flex: none; }
+  .titik.ok { background: var(--ok); }
+  .titik.gagal { background: #DC2626; }
+  .status-google { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ok); }
+
+  main { overflow-y: auto; min-width: 0; }
+  .lajur { max-width: 640px; margin: 0 auto; padding: 48px 20px; }
+  .lebar { max-width: 1060px; margin: 0 auto; padding: 32px 24px 48px; }
+  .kepala h1 { font-size: 22px; font-weight: 600; letter-spacing: -.01em; overflow-wrap: anywhere; }
+  .kepala p { color: var(--muted); font-size: 13px; }
+  .tab { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .tab button { padding: 5px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); cursor: pointer; font-size: 13px; box-shadow: var(--shadow-sm); }
+  .tab button:hover { background: var(--hover); }
+  .tab button.aktif { background: var(--gradien); color: var(--on-accent); border-color: transparent; }
+  .bungkus { margin-top: 14px; overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+  table { width: 100%; min-width: 760px; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 600; color: #fff; padding: 11px 12px; background: var(--navy); white-space: nowrap; letter-spacing: .01em; }
+  td { padding: 12px; border-top: 1px solid var(--line); vertical-align: top; font-size: 13px; }
+  tbody tr:hover td { background: #F8FAFF; }
+  td.tarikh, td.masa { white-space: nowrap; }
+  td.tajuk { font-weight: 500; }
+  td .kecil { display: block; font-weight: 400; margin-top: 2px; }
+  td.aksi { white-space: nowrap; }
+  .lencana-baris { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; font-weight: 500; }
+  .lencana { padding: 1px 8px; border-radius: 6px; font-size: 11px; line-height: 18px; white-space: nowrap; }
+  .lencana.kod { background: #E2E8F0; color: #334155; }
+  .lencana.orang { background: #DBEAFE; color: #1E3A8A; }
+  .kosong { padding: 40px 12px; text-align: center; color: var(--muted); }
+  .kecil { font-size: 12px; color: var(--muted); }
+  .butang { display: inline-block; padding: 5px 12px; border: 1px solid #CBD5E1; border-radius: 999px; background: var(--surface); color: var(--navy); font-weight: 500; text-decoration: none; font-size: 12px; cursor: pointer; }
+  .butang:hover { background: var(--hover); border-color: var(--biru); }
+  .butang:disabled { opacity: .4; cursor: default; }
+
+  .tajuk-borang { text-align: center; }
+  .tajuk-borang h1 { font-size: 28px; font-weight: 600; letter-spacing: -.02em; }
+  .tarikh-hari { color: var(--muted); margin-top: 4px; }
+  .zon { position: relative; margin-top: 28px; display: block; background: var(--surface); border: 1.5px dashed #94A3B8; border-radius: 18px; padding: 44px 20px; text-align: center; cursor: pointer; box-shadow: var(--shadow-sm); transition: background .15s, border-color .15s; }
+  .zon:hover, .zon.atas { background: var(--hover); border-color: var(--biru); }
+  .zon.ada { padding: 18px 20px; }
+  .zon strong { display: block; font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+  .zon span { color: var(--muted); font-size: 13px; }
+  .zon input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .zon:focus-within { outline: 2px solid #4c8bf5; }
+  .ruj { margin-top: 12px; padding: 10px 14px; background: var(--panel); border-radius: 12px; font-size: 13px; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .ruj .kod { overflow-wrap: anywhere; min-width: 0; }
+  .ruj.amaran { color: var(--warn); }
+  .pautan { flex: none; background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 13px; }
+  .betul { margin-top: 8px; }
+  .blok { margin-top: 28px; }
+  .blok-tajuk { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .cip { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cip label { position: relative; cursor: pointer; }
+  .cip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .cip span { display: block; padding: 8px 16px; background: var(--surface); border: 1px solid #CBD5E1; border-radius: 999px; box-shadow: var(--shadow-sm); }
+  .cip label:hover span { background: var(--hover); }
+  .cip input:checked + span { background: var(--gradien); color: var(--on-accent); border-color: transparent; }
+  .cip input:focus-visible + span { outline: 2px solid #4c8bf5; outline-offset: 1px; }
+  .medan { display: block; font-size: 13px; color: var(--muted); }
+  .medan input, .medan select, .medan textarea { display: block; width: 100%; margin-top: 4px; padding: 10px 12px; background: var(--field); color: var(--text); border: 1px solid var(--line); border-radius: 12px; }
+  textarea { resize: vertical; min-height: 60px; }
+  details.butiran { margin-top: 20px; }
+  details.butiran > summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+  .penuh { grid-column: 1 / -1; }
+  .aksi-utama { margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .utama { width: 100%; padding: 13px 22px; border: 0; border-radius: 999px; background: var(--gradien); color: var(--on-accent); font-weight: 600; font-size: 15px; cursor: pointer; box-shadow: var(--shadow-sm); transition: box-shadow .15s, transform .15s; }
+  .utama:disabled { opacity: .4; cursor: not-allowed; }
+  .hantar { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); font-size: 13px; }
+  .ralat { color: var(--bad); font-size: 13px; text-align: center; }
+
+  .kad { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
+  .hasil-kepala { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .hasil-kepala h2 { font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+  .butang-kumpulan { display: flex; gap: 8px; flex-wrap: wrap; }
+  .balik { margin-bottom: 12px; }
+  .langkah { list-style: none; margin: 14px 0 0; padding: 0; }
+  .langkah li { display: grid; grid-template-columns: 22px 90px 1fr; gap: 6px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .langkah .isi { color: var(--muted); overflow-wrap: anywhere; }
+  .s-berjaya { color: var(--ok); } .s-gagal { color: var(--bad); } .s-dilangkau { color: var(--warn); }
+  .kawalan-hal { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+  .pratonton { display: block; width: 100%; height: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+
+  dialog { border: 1px solid var(--line); border-radius: 16px; background: var(--bg); color: var(--text); width: min(460px, calc(100vw - 32px)); box-shadow: var(--shadow); padding: 20px; }
+  dialog::backdrop { background: rgba(0,0,0,.35); }
+  dialog h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  dialog p { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  dialog .medan { margin-bottom: 10px; }
+  .dialog-aksi { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+  .dialog-aksi.kiri { justify-content: flex-start; flex-wrap: wrap; }
+  .kad-ujian { margin: 0 0 10px; padding: 12px; background: var(--panel); border-radius: 10px; font: inherit; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 300px; overflow-y: auto; }
+
+  @media (max-width: 800px) {
+    .rangka { display: block; height: auto; }
+    .topbar { padding: 6px 12px; }
+    .plat { height: 40px; }
+    .plat img { height: 34px; }
+    .nama strong { font-size: 14px; }
+    .nama span, .info { display: none; }
+    .app { grid-template-columns: 1fr; height: auto; }
+    aside { max-height: 320px; border-right: 0; border-bottom: 1px solid var(--line); }
+    main { overflow: visible; }
+    .lajur { padding-top: 24px; }
+    .lebar { padding: 20px 16px 32px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* --- Tambahan versi dalam talian --- */
+  .info .pengguna { display: flex; gap: 8px; justify-content: flex-end; align-items: center; margin-top: 2px; }
+  .info .keluar { background: none; border: 0; padding: 0; color: #DBEAFE; text-decoration: underline; cursor: pointer; font-size: 12px; }
+  .layar-masuk { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 16px; background: var(--bg); background-image: linear-gradient(160deg, #EEF2FF, #F8FAFC 60%); }
+  .kad-masuk { width: min(420px, 100%); text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 28px 24px; box-shadow: var(--shadow); }
+  .kad-masuk .logo { display: flex; justify-content: center; gap: 10px; margin-bottom: 14px; }
+  .kad-masuk .logo img { height: 64px; width: auto; }
+  .kad-masuk h1 { font-size: 20px; font-weight: 700; color: var(--navy); }
+  .kad-masuk p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .kad-masuk .butang-google { display: flex; justify-content: center; margin-top: 20px; min-height: 44px; }
+  .kad-masuk .ralat { margin-top: 12px; }
+  .pratonton-kanvas { display: block; width: 100%; height: auto; margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .memuat { padding: 40px 12px; text-align: center; color: var(--muted); font-size: 13px; }
+  .butang.bahaya { color: var(--bad); border-color: #FCA5A5; }
+  .butang.bahaya:hover { background: #FEF2F2; border-color: var(--bad); }
+  .semakan { list-style: none; margin: 0 0 12px; padding: 0; }
+  .semakan li { display: grid; grid-template-columns: 20px 92px 1fr; gap: 6px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .semakan .isi { color: var(--muted); overflow-wrap: anywhere; }
+  .alat { display: grid; gap: 8px; margin-top: 8px; }
+  .alat .baris-alat { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .alat input[type=file] { font-size: 12px; max-width: 100%; }
+  .nota { font-size: 12px; color: var(--muted); }
+  dialog.lebar { width: min(640px, calc(100vw - 32px)); }
+  .jadual-pengguna { width: 100%; min-width: 0; border-collapse: collapse; margin-bottom: 12px; }
+  .jadual-pengguna th { background: var(--panel); color: var(--text); font-size: 12px; padding: 6px 8px; }
+  .jadual-pengguna td { padding: 6px 8px; font-size: 13px; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+  .borang-pengguna { display: grid; grid-template-columns: 1.4fr 1fr 0.8fr auto; gap: 8px; align-items: end; }
+  .borang-pengguna .medan input, .borang-pengguna .medan select { padding: 8px 10px; }
+  .kemajuan { font-size: 12px; color: var(--muted); text-align: center; }
+  @media (max-width: 800px) {
+    .info { display: block; }
+    .info strong, .info #tarikhAtas { display: none; }
+    .borang-pengguna { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layar-masuk" id="layarMasuk">
+  <div class="kad-masuk">
+    <div class="logo"><img src="img/logo_school.png" alt="Lencana SJK(C) Peay Min"><img src="img/logo_simplify.png" alt="Emblem S.I.M.P.L.I.F.Y-Surat"></div>
+    <h1>S.I.M.P.L.I.F.Y-Surat</h1>
+    <p>Sistem Inovasi Minit Penerimaan &amp; Log Integrasi Fail Yang Efisien</p>
+    <p id="teksMasuk">Log masuk dengan akaun Google yang didaftarkan oleh pentadbir.</p>
+    <div class="butang-google" id="butangGoogle"></div>
+    <div class="ralat" id="ralatMasuk" role="alert" hidden></div>
+  </div>
+</div>
+
+<div class="rangka" id="rangka" hidden>
+<header class="topbar">
+  <div class="jenama">
+    <div class="plat"><img src="img/logo_school.png" alt="Lencana SJK(C) Peay Min" onerror="this.parentElement.hidden = true"></div>
+    <div class="plat"><img src="img/logo_simplify.png" alt="Emblem S.I.M.P.L.I.F.Y-Surat" onerror="this.parentElement.hidden = true"></div>
+    <div class="nama">
+      <strong id="namaSistem">S.I.M.P.L.I.F.Y-Surat</strong>
+      <span id="namaPenuh">Sistem Inovasi Minit Penerimaan &amp; Log Integrasi Fail Yang Efisien</span>
+    </div>
+  </div>
+  <div class="info"><strong id="sekolah"></strong><span id="tarikhAtas"></span>
+    <div class="pengguna"><span id="namaPengguna"></span><button class="keluar" id="logKeluar" type="button">Log keluar</button></div>
+  </div>
+</header>
+<div class="app">
+  <aside>
+    <button class="baru" id="baharu" type="button" hidden>+ Surat baharu</button>
+    <label class="tahun">Tahun <select id="pilihTahun"></select></label>
+    <nav class="navigasi" id="navigasi" aria-label="Kategori surat"></nav>
+    <button class="tetapan" id="bukaUjian" type="button" hidden><span>Uji Peringatan</span></button>
+    <button class="tetapan" id="bukaPengguna" type="button" hidden><span>Pengguna</span></button>
+    <button class="tetapan" id="bukaTetapan" type="button"><span>Sambungan Google</span><span class="status-google"><span id="teksGoogle"></span><span class="titik" id="titikGoogle"></span></span></button>
+  </aside>
+
+  <main id="ruangUtama">
+    <div class="lebar" id="paparanSenarai">
+      <div class="kepala">
+        <h1 id="tajukSenarai">Semua surat</h1>
+        <p id="kiraan">Memuatkan...</p>
+      </div>
+      <div class="tab" id="tabBulan" role="group" aria-label="Tapis mengikut bulan"></div>
+      <div class="bungkus">
+        <table>
+          <thead><tr><th>Tarikh</th><th>Tajuk / Mesyuarat</th><th>Tempat</th><th>Masa</th><th>Surat</th></tr></thead>
+          <tbody id="badanJadual"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="lajur" id="paparanBorang" hidden>
+      <form id="borang" novalidate>
+        <div class="tajuk-borang">
+          <h1>Surat baharu</h1>
+          <div class="tarikh-hari" id="tarikhHari"></div>
+        </div>
+        <label class="zon" id="zon">
+          <input type="file" id="fail" name="fail" accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,.tif,.tiff,image/*,application/pdf">
+          <strong id="zonTajuk">Seret surat ke sini</strong>
+          <span id="zonKecil">atau klik untuk memilih fail PDF atau imej</span>
+        </label>
+        <div class="ruj" id="kotakRuj" aria-live="polite" hidden>
+          <span class="kod"><span id="teksRuj"></span><span class="kecil" id="teksButiran" style="display:block"></span></span>
+          <button class="pautan" id="butangBetul" type="button">Betulkan</button>
+        </div>
+        <label class="medan betul" id="medanRuj" hidden>Ruj. Kami
+          <input name="ruj" id="ruj" autocomplete="off" disabled placeholder="PPDKTG.STP.600-5/2/1 Jld.2 (12)">
+        </label>
+        <div class="blok">
+          <div class="blok-tajuk">Tindakan</div>
+          <div class="cip" id="jawatan"></div>
+        </div>
+        <div class="blok">
+          <label class="medan">Nama guru
+            <input name="guru_nama" id="guruNama" autocomplete="off" list="senaraiGuru" placeholder="Hee HY, Hanum">
+            <datalist id="senaraiGuru"></datalist>
+          </label>
+        </div>
+        <details class="butiran" id="butiran">
+          <summary>Butiran surat</summary>
+          <div class="grid">
+            <label class="medan penuh">Tajuk surat <input name="tajuk" id="isiTajuk" autocomplete="off"></label>
+            <label class="medan">Tarikh acara <input type="date" name="tarikh_acara" id="isiTarikh"></label>
+            <label class="medan">Tempat <input name="lokasi" id="isiTempat" autocomplete="off"></label>
+            <label class="medan">Masa mula <input type="time" name="masa_mula" id="isiMula"></label>
+            <label class="medan">Masa tamat <input type="time" name="masa_tamat" id="isiTamat"></label>
+            <label class="medan">Jenis
+              <select name="jenis" id="isiJenis"><option>Mesyuarat</option><option>Tarikh Akhir</option></select>
+            </label>
+            <label class="medan">Daripada <input name="daripada" id="isiDaripada" autocomplete="off"></label>
+            <label class="medan penuh">Ringkasan minit <textarea name="minit_ringkas" id="isiMinit"></textarea></label>
+          </div>
+        </details>
+        <div class="aksi-utama">
+          <button class="utama" id="butangProses" type="submit" disabled>Proses Surat</button>
+          <label class="hantar" id="labelHantar" hidden><input type="checkbox" name="hantar" value="1" id="hantar"> Hantar ke Kalendar</label>
+          <div class="kemajuan" id="kemajuan" aria-live="polite"></div>
+          <div class="ralat" id="ralatUtama" role="alert" hidden></div>
+        </div>
+      </form>
+    </div>
+
+    <div class="lajur" id="paparanHasil" hidden>
+      <button class="butang balik" id="kembali" type="button">Kembali ke senarai</button>
+      <section class="kad">
+        <div class="hasil-kepala">
+          <div><h2 id="hasilNama"></h2><div class="kecil" id="hasilFolder"></div></div>
+          <div class="butang-kumpulan">
+            <a class="butang" id="pautanBuka" target="_blank" rel="noopener">Buka</a>
+            <a class="butang" id="pautanMuat">Muat Turun</a>
+            <a class="butang" id="pautanDrive" target="_blank" rel="noopener" hidden>Drive</a>
+            <button class="butang bahaya" id="butangPadam" type="button" hidden>Padam</button>
+          </div>
+        </div>
+        <ul class="langkah" id="langkah"></ul>
+        <div class="kawalan-hal" id="kawalanHal">
+          <button class="butang" id="halSebelum" type="button">Sebelum</button>
+          <span id="labelHal"></span>
+          <button class="butang" id="halSeterus" type="button">Seterusnya</button>
+        </div>
+        <div class="memuat" id="memuatPratonton" hidden>Memuatkan surat...</div>
+        <canvas class="pratonton-kanvas" id="kanvasPratonton" aria-label="Pratonton surat bercop"></canvas>
+        <img class="pratonton" id="imejPratonton" alt="Pratonton surat bercop" hidden>
+      </section>
+    </div>
+  </main>
+</div>
+</div>
+
+<dialog id="dialogUjian">
+  <h2>Uji Peringatan</h2>
+  <p>Kad contoh ini akan dihantar ke kumpulan Telegram sebenar bersama PDF surat.</p>
+  <pre class="kad-ujian" id="kadUjian"></pre>
+  <div class="ralat" id="ralatUjian" role="alert" hidden></div>
+  <div class="dialog-aksi">
+    <button class="butang" type="button" id="tutupUjian">Batal</button>
+    <button class="butang" type="button" id="hantarUjian">Hantar ke Telegram</button>
+  </div>
+</dialog>
+
+<dialog id="dialogGoogle" class="lebar">
+  <h2>Sambungan Google</h2>
+  <p id="teksSambungan" aria-live="polite">Menyemak...</p>
+  <ul class="semakan" id="senaraiSemakan"></ul>
+  <div class="dialog-aksi kiri">
+    <button class="butang" type="button" id="semakGoogle">Semak semula</button>
+  </div>
+  <details class="butiran" id="alatAdmin" hidden>
+    <summary>Alat pentadbir</summary>
+    <div class="alat">
+      <div class="baris-alat"><span class="nota">Templat Cop Terima (PNG):</span><input type="file" id="templatTerima" accept="image/png"></div>
+      <div class="baris-alat"><span class="nota">Templat Cop Minit (PNG):</span><input type="file" id="templatMinit" accept="image/png"></div>
+      <div class="baris-alat"><span class="nota">Import data lama (Arkib_Surat/_pangkalan_surat.json):</span><input type="file" id="failImport" accept=".json,application/json"></div>
+      <div class="baris-alat">
+        <button class="butang" type="button" id="aktifAutomasi">Aktifkan peringatan automatik</button>
+        <button class="butang" type="button" id="segerakArkib">Segerak arkib Drive</button>
+      </div>
+      <div class="nota" id="hasilAlat" aria-live="polite"></div>
+    </div>
+  </details>
+  <div class="ralat" id="ralatGoogle" role="alert" hidden></div>
+  <div class="dialog-aksi">
+    <button class="butang" type="button" id="tutupGoogle">Tutup</button>
+  </div>
+</dialog>
+
+<dialog id="dialogPengguna" class="lebar">
+  <h2>Pengguna</h2>
+  <p>Hanya akaun Google dalam senarai ini boleh log masuk. Guru: lihat dan muat turun. Kerani: proses surat. Admin: semua termasuk senarai ini.</p>
+  <div style="overflow-x:auto"><table class="jadual-pengguna"><thead><tr><th>Emel</th><th>Nama</th><th>Peranan</th><th></th></tr></thead><tbody id="badanPengguna"></tbody></table></div>
+  <form class="borang-pengguna" id="borangPengguna" novalidate>
+    <label class="medan">Emel Google <input type="email" id="penggunaEmel" required autocomplete="off" placeholder="guru@moe-dl.edu.my"></label>
+    <label class="medan">Nama <input id="penggunaNama" autocomplete="off"></label>
+    <label class="medan">Peranan
+      <select id="penggunaPeranan"><option value="guru">Guru</option><option value="kerani">Kerani</option><option value="admin">Admin</option></select>
+    </label>
+    <button class="butang" type="submit">Simpan</button>
+  </form>
+  <div class="ralat" id="ralatPengguna" role="alert" hidden></div>
+  <div class="dialog-aksi">
+    <button class="butang" type="button" id="tutupPengguna">Tutup</button>
+  </div>
+</dialog>
+
+<script src="js/konfig.js"></script>
+<script src="js/kod_master.js"></script>
+<script src="js/baca.js"></script>
+<script src="lib/pdf-lib.min.js"></script>
+<script src="js/cop.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
