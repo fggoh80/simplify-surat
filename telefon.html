@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1E3A8A">
+<title>Surat · Telefon</title>
+<link rel="icon" href="img/logo_simplify.png">
+<link rel="manifest" href="telefon.webmanifest">
+<link rel="apple-touch-icon" href="img/ikon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Surat">
+<style>
+  :root {
+    --navy: #1E3A8A; --biru: #2563EB;
+    --bg: #F8FAFC; --surface: #ffffff; --panel: #F1F5F9; --line: #E2E8F0; --text: #0F172A; --muted: #64748B;
+    --hover: #EEF2FF; --ok: #15803D; --warn: #B45309; --bad: #B91C1C;
+    --gradien: linear-gradient(135deg, #1E3A8A, #2563EB);
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.06), 0 1px 3px rgba(15,23,42,.08);
+    --shadow: 0 4px 6px -1px rgba(15,23,42,.08), 0 10px 24px -6px rgba(15,23,42,.12);
+    --cahaya: 0 6px 18px rgba(37,99,235,.38);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  h1, h2, p { margin: 0; }
+  [hidden] { display: none !important; }
+
+  .topbar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 10px 14px; padding-top: max(10px, env(safe-area-inset-top)); background: linear-gradient(100deg, #172F73, #1E3A8A 55%, #2563EB); color: #fff; box-shadow: var(--shadow); }
+  .plat { flex: none; display: flex; align-items: center; height: 40px; padding: 2px 5px; background: #fff; border-radius: 9px; }
+  .plat img { height: 34px; width: auto; display: block; }
+  .nama { min-width: 0; flex: 1; }
+  .nama strong { display: block; font-size: 16px; line-height: 1.2; }
+  .nama span { display: block; font-size: 11px; color: #DBEAFE; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .keluar { flex: none; background: rgba(255,255,255,.15); border: 0; color: #fff; border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer; }
+
+  .lajur { max-width: 560px; margin: 0 auto; padding: 18px 16px calc(32px + env(safe-area-inset-bottom)); }
+  .tajuk-borang { text-align: center; }
+  .tajuk-borang h1 { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+  .tarikh-hari { color: var(--muted); margin-top: 2px; }
+
+  .sumber { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+  .pilih { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 104px; padding: 14px 10px; background: var(--surface); border: 1.5px dashed #94A3B8; border-radius: 16px; text-align: center; cursor: pointer; box-shadow: var(--shadow-sm); }
+  .pilih:active { background: var(--hover); border-color: var(--biru); }
+  .pilih .ikon { font-size: 28px; line-height: 1; }
+  .pilih strong { font-size: 14px; }
+  .pilih span { font-size: 12px; color: var(--muted); }
+  .pilih input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .fail-dipilih { margin-top: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; display: flex; align-items: center; gap: 10px; }
+  .fail-dipilih .info-fail { flex: 1; min-width: 0; }
+  .fail-dipilih strong { display: block; font-size: 14px; overflow-wrap: anywhere; }
+  .fail-dipilih span { font-size: 12px; color: var(--muted); }
+  .gambar-kecil { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .gambar-kecil img { width: 52px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+  .pautan { flex: none; background: none; border: 0; padding: 4px; color: var(--biru); text-decoration: underline; cursor: pointer; font-size: 13px; }
+  .tambah-halaman { margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 1px solid #CBD5E1; border-radius: 999px; background: var(--surface); color: var(--navy); font-size: 13px; font-weight: 600; cursor: pointer; position: relative; }
+  .tambah-halaman input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+
+  .ruj { margin-top: 12px; padding: 10px 14px; background: var(--panel); border-radius: 12px; font-size: 13px; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .ruj .kod { overflow-wrap: anywhere; min-width: 0; }
+  .ruj.amaran { color: var(--warn); }
+  .kecil { font-size: 12px; color: var(--muted); }
+  .blok { margin-top: 22px; }
+  .blok-tajuk { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .cip { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cip label { position: relative; cursor: pointer; }
+  .cip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .cip span { display: block; padding: 10px 16px; background: var(--surface); border: 1px solid #CBD5E1; border-radius: 999px; box-shadow: var(--shadow-sm); font-size: 15px; }
+  .cip input:checked + span { background: var(--gradien); color: #fff; border-color: transparent; }
+  .medan { display: block; font-size: 13px; color: var(--muted); }
+  .medan input, .medan select, .medan textarea { display: block; width: 100%; margin-top: 4px; padding: 12px; background: #fff; color: var(--text); border: 1px solid var(--line); border-radius: 12px; font-size: 16px; }
+  .cadangan { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .cadangan button { padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); font-size: 13px; cursor: pointer; }
+  details.butiran { margin-top: 20px; }
+  details.butiran > summary { cursor: pointer; color: var(--muted); font-size: 14px; padding: 4px 0; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin-top: 12px; }
+  .aksi-utama { margin-top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .utama { width: 100%; padding: 15px 22px; border: 0; border-radius: 999px; background: var(--gradien); color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: var(--cahaya); }
+  .utama:disabled { opacity: .4; box-shadow: none; }
+  .hantar { display: inline-flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; }
+  .hantar input { width: 18px; height: 18px; }
+  .kemajuan { font-size: 13px; color: var(--muted); text-align: center; }
+  .ralat { color: var(--bad); font-size: 14px; text-align: center; }
+
+  .kad { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); }
+  .kad h2 { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+  .langkah { list-style: none; margin: 12px 0 0; padding: 0; }
+  .langkah li { display: grid; grid-template-columns: 22px 80px 1fr; gap: 6px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .langkah .isi { color: var(--muted); overflow-wrap: anywhere; }
+  .s-berjaya { color: var(--ok); } .s-gagal { color: var(--bad); } .s-dilangkau { color: var(--warn); }
+  .pratonton { display: block; width: 100%; height: auto; margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+  .butang-baris { display: flex; gap: 8px; margin-top: 14px; }
+  .butang { flex: 1; display: inline-block; text-align: center; padding: 11px 12px; border: 1px solid #CBD5E1; border-radius: 999px; background: var(--surface); color: var(--navy); font-weight: 600; text-decoration: none; font-size: 14px; cursor: pointer; }
+
+  .layar-masuk { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background-image: linear-gradient(160deg, #EEF2FF, #F8FAFC 60%); }
+  .kad-masuk { width: min(420px, 100%); text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 26px 20px; box-shadow: var(--shadow); }
+  .kad-masuk .logo { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; }
+  .kad-masuk .logo img { height: 60px; width: auto; }
+  .kad-masuk h1 { font-size: 19px; font-weight: 700; color: var(--navy); }
+  .kad-masuk p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .butang-google { display: flex; justify-content: center; margin-top: 18px; min-height: 44px; }
+  .kad-masuk .ralat { margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="layar-masuk" id="layarMasuk">
+  <div class="kad-masuk">
+    <div class="logo"><img src="img/logo_school.png" alt="Lencana SJK(C) Peay Min"><img src="img/logo_simplify.png" alt="Emblem S.I.M.P.L.I.F.Y-Surat"></div>
+    <h1>S.I.M.P.L.I.F.Y-Surat</h1>
+    <p>Versi telefon: muat naik surat baharu</p>
+    <p id="teksMasuk">Log masuk dengan akaun Google pentadbir.</p>
+    <div class="butang-google" id="butangGoogle"></div>
+    <div class="ralat" id="ralatMasuk" role="alert" hidden></div>
+  </div>
+</div>
+
+<div id="rangka" hidden>
+<header class="topbar">
+  <div class="plat"><img src="img/logo_school.png" alt="Lencana SJK(C) Peay Min"></div>
+  <div class="plat"><img src="img/logo_simplify.png" alt="Emblem S.I.M.P.L.I.F.Y-Surat"></div>
+  <div class="nama"><strong>S.I.M.P.L.I.F.Y-Surat</strong><span id="namaPengguna"></span></div>
+  <button class="keluar" id="logKeluar" type="button">Keluar</button>
+</header>
+
+<main>
+  <div class="lajur" id="paparanBorang">
+    <form id="borang" novalidate>
+      <div class="tajuk-borang">
+        <h1>Surat baharu</h1>
+        <div class="tarikh-hari" id="tarikhHari"></div>
+      </div>
+
+      <div class="sumber" id="pilihSumber">
+        <label class="pilih">
+          <input type="file" id="failKamera" accept="image/*" capture="environment">
+          <span class="ikon">📷</span><strong>Ambil gambar</strong><span>Halaman 1 dahulu</span>
+        </label>
+        <label class="pilih">
+          <input type="file" id="failPilih" accept=".pdf,.png,.jpg,.jpeg,.webp,application/pdf,image/*">
+          <span class="ikon">📄</span><strong>Pilih fail</strong><span>PDF atau gambar</span>
+        </label>
+      </div>
+
+      <div class="fail-dipilih" id="failDipilih" hidden>
+        <div class="info-fail">
+          <strong id="namaFail"></strong><span id="saizFail"></span>
+          <div class="gambar-kecil" id="gambarKecil"></div>
+          <label class="tambah-halaman" id="tambahHalaman" hidden><input type="file" id="failTambah" accept="image/*" capture="environment">＋ Halaman seterusnya</label>
+        </div>
+        <button class="pautan" id="tukarFail" type="button">Tukar</button>
+      </div>
+
+      <div class="ruj" id="kotakRuj" aria-live="polite" hidden>
+        <span class="kod"><span id="teksRuj"></span><span class="kecil" id="teksButiran" style="display:block"></span></span>
+        <button class="pautan" id="butangBetul" type="button">Betulkan</button>
+      </div>
+      <label class="medan" id="medanRuj" hidden style="margin-top:10px">Ruj. Kami
+        <input id="ruj" autocomplete="off" disabled placeholder="PPDKTG.STP.600-5/2/1 Jld.2 (12)">
+      </label>
+
+      <div class="blok">
+        <div class="blok-tajuk">Tindakan</div>
+        <div class="cip" id="jawatan"></div>
+      </div>
+      <div class="blok">
+        <label class="medan">Nama guru
+          <input id="guruNama" autocomplete="off" placeholder="Hee HY, Hanum">
+        </label>
+        <div class="cadangan" id="cadanganGuru"></div>
+      </div>
+
+      <details class="butiran" id="butiran">
+        <summary>Butiran surat</summary>
+        <div class="grid">
+          <label class="medan">Tajuk surat <input id="isiTajuk" autocomplete="off"></label>
+          <label class="medan">Tarikh acara <input type="date" id="isiTarikh"></label>
+          <label class="medan">Masa mula <input type="time" id="isiMula"></label>
+          <label class="medan">Masa tamat <input type="time" id="isiTamat"></label>
+          <label class="medan">Tempat <input id="isiTempat" autocomplete="off"></label>
+          <label class="medan">Jenis <select id="isiJenis"><option>Mesyuarat</option><option>Tarikh Akhir</option></select></label>
+          <label class="medan">Daripada <input id="isiDaripada" autocomplete="off"></label>
+          <label class="medan">Ringkasan minit <textarea id="isiMinit" rows="2"></textarea></label>
+        </div>
+      </details>
+
+      <div class="aksi-utama">
+        <button class="utama" id="butangProses" type="submit" disabled>Proses Surat</button>
+        <label class="hantar" id="labelHantar" hidden><input type="checkbox" id="hantar"> Hantar ke Kalendar</label>
+        <div class="kemajuan" id="kemajuan" aria-live="polite"></div>
+        <div class="ralat" id="ralatUtama" role="alert" hidden></div>
+      </div>
+    </form>
+  </div>
+
+  <div class="lajur" id="paparanHasil" hidden>
+    <section class="kad">
+      <h2 id="hasilNama"></h2>
+      <div class="kecil" id="hasilFolder"></div>
+      <ul class="langkah" id="langkah"></ul>
+      <canvas class="pratonton" id="kanvasPratonton" aria-label="Pratonton surat bercop"></canvas>
+      <img class="pratonton" id="imejPratonton" alt="Pratonton surat bercop" hidden>
+      <div class="butang-baris">
+        <a class="butang" id="pautanBuka" target="_blank" rel="noopener">Buka</a>
+        <button class="butang" id="suratLagi" type="button">＋ Surat baharu</button>
+      </div>
+    </section>
+  </div>
+</main>
+</div>
+
+<script src="js/konfig.js"></script>
+<script src="js/kod_master.js"></script>
+<script src="js/baca.js"></script>
+<script src="lib/pdf-lib.min.js"></script>
+<script src="js/cop.js"></script>
+<script src="js/telefon.js"></script>
+</body>
+</html>
