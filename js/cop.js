@@ -11,6 +11,10 @@ var Cop = (function () {
   var FON = 'CopFon';
   var JENIS_IMEJ = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', bmp: 'image/bmp', tif: 'image/tiff', tiff: 'image/tiff' };
   var OCR_DPI = [250, 300];
+  // Penutup surat: Cop Minit diletakkan pada halaman tandatangan pengirim.
+  var RE_PENUTUP = /menjalankan\s+amanah|BERKHIDMAT\s+UNTUK\s+NEGARA|menurut\s+perintah|^\s*Sekian[\s,.]/im;
+  var HAD_HALAMAN_PENUTUP = 6;
+  var DPI_PENUTUP = 150;
 
   function RalatCop(mesej) {
     var e = new Error(mesej);
@@ -511,6 +515,35 @@ var Cop = (function () {
     return null;
   }
 
+  /**
+   * Halaman tandatangan selain halaman 1: cari dari baris penutup (Sekian/amanah) ke bawah,
+   * supaya Cop Minit berada di sebelah tandatangan, bukan di sudut bawah halaman.
+   */
+  function letakMinitAtas(peta, cop, cfg, pad, terpakai, yMula) {
+    var margin = peta.lebar * cfg.margin_nisbah;
+    var langkah = peta.lebar / 150;
+    var skala = 1.0;
+    while (skala >= cfg.skala_min - 1e-9) {
+      var lebar = peta.lebar * cfg.lebar_nisbah * skala;
+      var tinggi = lebar * cop.height / cop.width;
+      var y0 = Math.max(margin, yMula);
+      while (y0 + tinggi <= peta.tinggi - margin) {
+        var x0 = peta.lebar - margin - lebar;
+        while (x0 >= peta.lebar * 0.45) {
+          var kotak = kotakSaiz(x0, y0, lebar, cop);
+          var longgar = [x0 - pad, y0 - pad, kotak[2] + pad, kotak[3] + pad];
+          if (peta.kosong(longgar) && !terpakai.some(function (t) { return bertindih(longgar, t); })) {
+            return { kotak: kotak, skala: skala };
+          }
+          x0 -= langkah;
+        }
+        y0 += langkah;
+      }
+      skala -= 0.05;
+    }
+    return null;
+  }
+
   function bertindih(a, b) {
     return a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
   }
@@ -546,7 +579,7 @@ var Cop = (function () {
   }
 
   /** Pulangkan senarai {cop, indeks, kotak} dan ringkasan penempatan. */
-  function rancangCop(senaraiCop, petaIkutHalaman, sauh, bilHalaman, pad) {
+  function rancangCop(senaraiCop, petaIkutHalaman, sauh, bilHalaman, pad, halamanPenutup) {
     var rancangan = [];
     var ringkasan = {};
     var terpakai = {};
@@ -562,15 +595,20 @@ var Cop = (function () {
             rancangan.push({ cop: item.cop, indeks: 0, kotak: h.kotak });
           });
         }
+        // Halaman tandatangan dahulu; jika tiada ruang, susunan asal: pertama, kedua, terakhir.
         var calon = [];
-        [0, Math.min(1, bilHalaman - 1), bilHalaman - 1].forEach(function (i) { if (calon.indexOf(i) < 0) calon.push(i); });
+        [halamanPenutup ? halamanPenutup.indeks : null, 0, Math.min(1, bilHalaman - 1), bilHalaman - 1].forEach(function (i) {
+          if (i !== null && i !== undefined && i >= 0 && calon.indexOf(i) < 0) calon.push(i);
+        });
         var cuba = function (n) {
           if (n >= calon.length) throw RalatCop('Tiada ruang kosong untuk Cop Minit pada halaman pertama, kedua atau terakhir.');
           var indeks = calon[n];
           return petaIkutHalaman(indeks).then(function (peta) {
-            var h = letakMinit(peta, item.cop, item.cfg, pad, terpakai[indeks] || []);
+            var atas = halamanPenutup && indeks === halamanPenutup.indeks && indeks > 0;
+            var h = atas ? letakMinitAtas(peta, item.cop, item.cfg, pad, terpakai[indeks] || [], halamanPenutup.y)
+              : letakMinit(peta, item.cop, item.cfg, pad, terpakai[indeks] || []);
             if (!h) return cuba(n + 1);
-            ringkasan.minit = { halaman: indeks + 1, skala: bundar2(h.skala) };
+            ringkasan.minit = { halaman: indeks + 1, skala: bundar2(h.skala), tandatangan: Boolean(halamanPenutup) && indeks === halamanPenutup.indeks };
             (terpakai[indeks] = terpakai[indeks] || []).push(h.kotak);
             rancangan.push({ cop: item.cop, indeks: indeks, kotak: h.kotak });
           });
@@ -605,7 +643,42 @@ var Cop = (function () {
       L.popGraphicsState());
   }
 
-  function tampalPdf(bait, senaraiCop, pad) {
+  /**
+   * Cari halaman penutup (tandatangan pengirim). Lapisan teks dibaca terus; halaman imbasan
+   * dibaca dengan fungsi ocr (PNG -> teks) jika diberi. Pulangkan indeks halaman atau null.
+   */
+  function cariHalamanPenutup(dok, pdfjs, pilihan) {
+    var had = Math.min(dok.numPages, HAD_HALAMAN_PENUTUP);
+    var yPenutup = 0;
+    var cuba = function (i) {
+      if (i >= had) return Promise.resolve(null);
+      return dok.getPage(i + 1).then(function (h) {
+        return h.getTextContent().then(function (k) {
+          var teks = k.items.map(function (it) { return (it.str || '') + (it.hasEOL ? '\n' : ' '); }).join('');
+          if (teks.replace(/\s/g, '').length > 40) {
+            // Kedudukan baris penutup pertama (lapisan teks sahaja; OCR tiada koordinat).
+            var vp = h.getViewport({ scale: 1 });
+            var kotak = ['Sekian', 'MALAYSIA MADANI', 'BERKHIDMAT', 'amanah', 'menurut perintah'].reduce(function (a, kata) {
+              return a.concat(cariTeks(k, vp, kata));
+            }, []);
+            yPenutup = kotak.length ? Math.min.apply(null, kotak.map(function (r) { return r[1]; })) : 0;
+            return teks;
+          }
+          yPenutup = 0;
+          if (i === 0 && pilihan.teksHalaman1) return pilihan.teksHalaman1;
+          if (!pilihan.ocr) return '';
+          return lukisHalaman(h, DPI_PENUTUP / 72, false, pdfjs).then(function (c) {
+            return new Promise(function (lulus) { c.toBlob(lulus, 'image/png'); });
+          }).then(function (png) { return pilihan.ocr(png); }).catch(function () { return ''; });
+        });
+      }).then(function (teks) {
+        return RE_PENUTUP.test(teks || '') ? { indeks: i, y: yPenutup } : cuba(i + 1);
+      });
+    };
+    return cuba(0);
+  }
+
+  function tampalPdf(bait, senaraiCop, pad, pilihan) {
     var dok;
     return muatPdfjs().then(function (pdfjs) {
       return bukaPdf(bait).then(function (d) {
@@ -621,8 +694,10 @@ var Cop = (function () {
           if (!simpanan[i]) simpanan[i] = dapatHalaman(i).then(function (h) { return petaHalaman(h, pdfjs); });
           return simpanan[i];
         }
-        return dapatHalaman(0).then(cariTarikh).then(function (sauh) {
-          return rancangCop(senaraiCop, petaIkutHalaman, sauh, dok.numPages, pad);
+        var adaMinit = senaraiCop.some(function (x) { return x.jenis === 'minit'; });
+        var penutup = adaMinit ? cariHalamanPenutup(dok, pdfjs, pilihan || {}) : Promise.resolve(null);
+        return Promise.all([dapatHalaman(0).then(cariTarikh), penutup]).then(function (x) {
+          return rancangCop(senaraiCop, petaIkutHalaman, x[0], dok.numPages, pad, x[1]);
         }).then(function (pelan) {
           return tulisPdf(bait, dok, dapatHalaman, pelan, pdfjs);
         });
@@ -764,7 +839,7 @@ var Cop = (function () {
         });
       }
       return fail.arrayBuffer().then(function (bait) {
-        var kerja = sambungan === 'pdf' ? tampalPdf(new Uint8Array(bait), senarai, cop.pad_ruang)
+        var kerja = sambungan === 'pdf' ? tampalPdf(new Uint8Array(bait), senarai, cop.pad_ruang, pilihan)
           : tampalImej(fail, senarai, cop.pad_ruang, sambungan);
         return kerja.then(function (h) {
           var batang = fail.name.replace(/\.[^.]+$/, '');

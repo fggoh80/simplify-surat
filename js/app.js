@@ -411,7 +411,7 @@
     const s = h.surat;
     const letak = [];
     if (cop.penempatan.terima) letak.push('Terima hal. ' + cop.penempatan.terima.halaman);
-    if (cop.penempatan.minit) letak.push('Minit hal. ' + cop.penempatan.minit.halaman);
+    if (cop.penempatan.minit) letak.push('Minit hal. ' + cop.penempatan.minit.halaman + (cop.penempatan.minit.tandatangan ? ' (tandatangan)' : ''));
     const senarai = [baris('berjaya', 'Cop', letak.join(', '))];
     senarai.push(s.kod ? baris('berjaya', 'Ruj', s.ruj) : baris('dilangkau', 'Ruj', 'Tidak dikesan'));
     senarai.push(baris('berjaya', 'Butiran', [s.tarikh_teks, s.masa, s.tempat].filter(Boolean).join(' · ') || 'Tiada butiran acara'));
@@ -498,7 +498,7 @@
     if (pdf) {
       teks = await Cop.teksHalamanPertama(new Uint8Array(await fail.arrayBuffer()));
       const ruj = cariRuj_(teks, false);
-      if (ruj) return Object.assign({ ruj, sumber: 'teks' }, huraikanMaklumat_(teks));
+      if (ruj) return Object.assign({ ruj, sumber: 'teks', teks }, huraikanMaklumat_(teks));
     }
     for (const dpi of Cop.OCR_DPI) {
       setRuj('Membaca imbasan dengan OCR Google (' + dpi + ' dpi)...', false, false);
@@ -506,11 +506,11 @@
       const b = new Uint8Array(await png.arrayBuffer());
       const { teks: teksOcr } = await api('surat.ocr', { png_b64: keBase64(b) });
       const ruj = cariRuj_(teksOcr, true);
-      if (ruj) return Object.assign({ ruj, sumber: 'ocr' }, huraikanMaklumat_(teksOcr));
+      if (ruj) return Object.assign({ ruj, sumber: 'ocr', teks: teksOcr }, huraikanMaklumat_(teksOcr));
       // Ruj mungkin tertutup cop, tetapi butiran lain masih berguna.
       teks = teksOcr || teks;
     }
-    return Object.assign(kosong, huraikanMaklumat_(teks));
+    return Object.assign(kosong, { teks }, huraikanMaklumat_(teks));
   }
 
   async function analisis(fail) {
@@ -626,7 +626,12 @@
       const jawatan = [...borang.querySelectorAll('input[name=jawatan]:checked')].map((x) => x.value);
       setKemajuan('Menyediakan cop...');
       const hariIni = Cop.hariIniIso();
-      const cop = await Cop.copSurat(fail, { templat: await dapatTemplat(), tarikhTerima: hariIni, jawatan, guru });
+      const cop = await Cop.copSurat(fail, {
+        templat: await dapatTemplat(), tarikhTerima: hariIni, jawatan, guru,
+        // Halaman tandatangan pengirim: teks halaman 1 sudah dibaca; halaman imbasan lain dibaca OCR.
+        teksHalaman1: baca.teks || '',
+        ocr: async (png) => (await api('surat.ocr', { png_b64: keBase64(new Uint8Array(await png.arrayBuffer())) })).teks,
+      });
       setKemajuan('Menyimpan ke Drive dan menghantar makluman...');
       const h = await api('surat.proses', {
         id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random()).replace(/[^A-Za-z0-9]/g, '').slice(0, 32),
